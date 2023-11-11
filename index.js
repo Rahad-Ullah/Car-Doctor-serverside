@@ -11,8 +11,8 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://car-doctor-b79a0.web.app',
-    'https://car-doctor-b79a0.firebaseapp.com'
+    // 'https://car-doctor-b79a0.web.app',
+    // 'https://car-doctor-b79a0.firebaseapp.com'
   ],
   credentials: true
 }))
@@ -89,7 +89,21 @@ async function run() {
     //! service related api
     // get all services
     app.get('/services', async (req, res) => {
-        const cursor = serviceCollection.find()
+        const sortValue = req.query.sort;
+        const minValue = parseInt(req.query.min);
+        const maxValue = parseInt(req.query.max);
+        const searchValue = req.query.search;
+        console.log(sortValue, minValue, maxValue, searchValue)
+        const query = {
+          price: {$gte: minValue, $lte: maxValue},
+          title: {$regex: searchValue, $options: 'i'}
+        }
+        const options = {
+          sort: {
+            price: sortValue === 'asc' ? 1 : -1
+          }
+        }
+        const cursor = serviceCollection.find(query, options)
         const result = await cursor.toArray()
         res.send(result)
     })
